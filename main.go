@@ -36,6 +36,9 @@ func main() {
 const (
 	SourceBench = "bench"
 	SourceWPT   = "wpt"
+
+	AWSRegion = "eu-west-3"
+	AWSBucket = "lpd-perf"
 )
 
 // run configures the flags and starts the HTTP API server.
@@ -43,12 +46,18 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// declare runtime flag parameters.
 	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
 	// usage func declaration.
+	exec := args[0]
 	flags.Usage = func() {
-		fmt.Fprintf(stderr, "usage: %s <source> <result.json>\n", args[0])
+		fmt.Fprintf(stderr, "usage: %s <source> <result.json>\n", exec)
 		fmt.Fprintf(stderr, "\nRead, format and save performance results.\n")
 		fmt.Fprintf(stderr, "\nThe sources avalaible are:\n")
 		fmt.Fprintf(stderr, "\t%s\tjsruntime-lib benchmark json result.\n", SourceBench)
 		fmt.Fprintf(stderr, "\t%s\tbrowsercore WPT test result.\n", SourceWPT)
+		fmt.Fprintf(stderr, "\nTo upload data in AWS S3, the program uses env var:\n")
+		fmt.Fprintf(stderr, "\tAWS_ACCESS_KEY_ID\t\trequired\n")
+		fmt.Fprintf(stderr, "\tAWS_SECRET_ACCESS_KEY\t\trequired\n")
+		fmt.Fprintf(stderr, "\tAWS_REGION\t\t\tdefault value: %s\n", AWSRegion)
+		fmt.Fprintf(stderr, "\tAWS_BUCKET\t\t\tdefault value: %s\n", AWSBucket)
 	}
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
@@ -60,11 +69,15 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return errors.New("bad arguments")
 	}
 
-	var append Append
+	var (
+		append Append
+		path   string
+	)
 
 	switch args[0] {
 	case SourceBench:
 		append = &bench.Append{}
+		path = "bench/history.json"
 	case SourceWPT:
 		return errors.New("not implemented source")
 	default:
@@ -79,8 +92,14 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 	defer one.Close()
 
+	// prepare S3 connection
+	// set default env region if not already set.
+	if _, ok := os.LookupEnv("AWS_REGION"); !ok {
+		os.Setenv("AWS_REGION", AWSRegion)
+	}
+	fio, err := NewS3IO(env("AWS_BUCKET", AWSBucket), path)
+
 	// pull the all
-	fio := FileIO{Path: "/tmp/append.json"}
 	all, err := fio.Pull(ctx)
 	if err != nil {
 		return fmt.Errorf("pull all file: %w", err)
@@ -100,4 +119,13 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 
 	return nil
+}
+
+func env(key, dflt string) string {
+	val, ok := os.LookupEnv(key)
+	if !ok {
+		return dflt
+	}
+
+	return val
 }
