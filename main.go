@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"flag"
@@ -86,16 +87,16 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 	defer all.Close()
 
-	// push output
-	out, err := fio.Push(ctx)
-	if err != nil {
-		return fmt.Errorf("push result: %w", err)
-	}
-	defer out.Close()
+	var out bytes.Buffer
 
 	// append input to output
-	if err := append.Append(ctx, out, all, one); err != nil {
+	if err := append.Append(ctx, &out, all, one); err != nil {
 		return fmt.Errorf("append result: %w", err)
+	}
+
+	// push output
+	if err := fio.Push(ctx, &out); err != nil {
+		return fmt.Errorf("push result: %w", err)
 	}
 
 	return nil
