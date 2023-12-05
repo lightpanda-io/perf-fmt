@@ -79,7 +79,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	switch args[0] {
 	case SourceBench:
 		append = &bench.Append{}
-		path = "bench/history.json"
+		path = "bench"
 	case SourceWPT:
 		return errors.New("not implemented source")
 	default:
@@ -104,7 +104,10 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	if _, ok := os.LookupEnv("AWS_REGION"); !ok {
 		os.Setenv("AWS_REGION", AWSRegion)
 	}
-	fio, err := NewS3IO(env("AWS_BUCKET", AWSBucket), path)
+	fio, err := NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/history.json")
+	if err != nil {
+		return fmt.Errorf("new s3 io: %w", err)
+	}
 
 	// pull the all
 	all, err := fio.Pull(ctx)
@@ -123,6 +126,23 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// push output
 	if err := fio.Push(ctx, &out); err != nil {
 		return fmt.Errorf("push result: %w", err)
+	}
+
+	// push the single result file
+	// Reset the file handler to the begining of the file
+	if _, err := one.Seek(0, 0); err != nil {
+		return fmt.Errorf("reset file: %w", err)
+	}
+
+	filename := fmt.Sprintf("%s_%v.json", now.Format("2006-01-02_15-04"), hash)
+	fio, err = NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/"+filename)
+	if err != nil {
+		return fmt.Errorf("news3io single result: %w", err)
+	}
+
+	// push output
+	if err := fio.Push(ctx, one); err != nil {
+		return fmt.Errorf("push single result : %w", err)
 	}
 
 	return nil
