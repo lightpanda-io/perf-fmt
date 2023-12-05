@@ -41,7 +41,12 @@ type OutResult struct {
 
 type Append struct{}
 
-func (a *Append) Append(ctx context.Context, hash git.CommitHash, out io.Writer, all io.Reader, one io.Reader) error {
+func (a *Append) Append(
+	ctx context.Context,
+	hash git.CommitHash, datetime time.Time,
+	out io.Writer,
+	all io.Reader, one io.Reader,
+) error {
 	// decode one input
 	var inr []InResult
 	dec := json.NewDecoder(one)
@@ -67,7 +72,7 @@ func (a *Append) Append(ctx context.Context, hash git.CommitHash, out io.Writer,
 
 	outres := OutResult{
 		Hash: hash,
-		Time: time.Now(),
+		Time: datetime,
 	}
 
 	for _, v := range inr {

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/browsercore/perf-fmt/bench"
 	"github.com/browsercore/perf-fmt/git"
@@ -89,6 +90,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	hash := git.CommitHash(args[1])
 	// TODO check commit format
 
+	now := time.Now()
+
 	// open one
 	one, err := os.Open(args[2])
 	if err != nil {
@@ -113,7 +116,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	var out bytes.Buffer
 
 	// append input to output
-	if err := append.Append(ctx, hash, &out, all, one); err != nil {
+	if err := append.Append(ctx, hash, now, &out, all, one); err != nil {
 		return fmt.Errorf("append result: %w", err)
 	}
 
