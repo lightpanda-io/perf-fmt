@@ -16,13 +16,25 @@ type InResult struct {
 		AllocSize int `json:"alloc_size"`
 		AllocNb   int `json:"alloc_nb"`
 		ReallocNb int `json:"realloc_nb"`
+		FreeNb    int `json:"free_nb"`
 	} `json:"bench"`
 }
 
+type OutItem struct {
+	Duration  int `json:"duration"`
+	AllocSize int `json:"allocationSize"`
+	AllocNb   int `json:"alloccation"`
+	ReallocNb int `json:"reallocation"`
+	FreeNb    int `json:"free"`
+}
+
 type OutResult struct {
-	Commit string     `json:"commit"`
-	Time   time.Time  `json:"time"`
-	Benchs []InResult `json:"benchs"`
+	Commit string    `json:"commitHash"`
+	Time   time.Time `json:"dateTime"`
+	Data   struct {
+		WithIsolate    OutItem `json:"withIsolate"`
+		WithoutIsolate OutItem `json:"withoutIsolate"`
+	} `json:"data"`
 }
 
 type Append struct{}
@@ -37,18 +49,34 @@ func (a *Append) Append(ctx context.Context, out io.Writer, all io.Reader, one i
 	}
 
 	// decode all input
-	var outr []OutResult
+	var allres []OutResult
 	dec = json.NewDecoder(all)
 
-	if err := dec.Decode(&outr); err != nil && !errors.Is(err, io.EOF) {
+	if err := dec.Decode(&allres); err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("decode all: %w", err)
 	}
 
-	outr = append(outr, OutResult{Commit: "TODO", Time: time.Now(), Benchs: inr})
+	outres := OutResult{
+		Commit: "TODO",
+		Time:   time.Now(),
+	}
+
+	for _, v := range inr {
+		switch v.Name {
+		case "With Isolate":
+			outres.Data.WithIsolate = OutItem(v.Bench)
+		case "Without Isolate":
+			outres.Data.WithoutIsolate = OutItem(v.Bench)
+		default:
+			return fmt.Errorf("unhandled bench result: %s", v.Name)
+		}
+	}
+
+	allres = append(allres, outres)
 
 	// encode output
 	enc := json.NewEncoder(out)
-	if err := enc.Encode(outr); err != nil {
+	if err := enc.Encode(allres); err != nil {
 		return fmt.Errorf("encode out: %w", err)
 	}
 
