@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/browsercore/perf-fmt/bench"
+	"github.com/browsercore/perf-fmt/git"
 )
 
 const (
@@ -48,7 +49,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// usage func declaration.
 	exec := args[0]
 	flags.Usage = func() {
-		fmt.Fprintf(stderr, "usage: %s <source> <result.json>\n", exec)
+		fmt.Fprintf(stderr, "usage: %s <source> <commit> <result.json>\n", exec)
 		fmt.Fprintf(stderr, "\nRead, format and save performance results.\n")
 		fmt.Fprintf(stderr, "\nThe sources avalaible are:\n")
 		fmt.Fprintf(stderr, "\t%s\tjsruntime-lib benchmark json result.\n", SourceBench)
@@ -64,7 +65,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 
 	args = flags.Args()
-	if len(args) != 2 {
+	if len(args) != 3 {
 		flags.Usage()
 		return errors.New("bad arguments")
 	}
@@ -85,8 +86,11 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return errors.New("bad source")
 	}
 
+	hash := git.CommitHash(args[1])
+	// TODO check commit format
+
 	// open one
-	one, err := os.Open(args[1])
+	one, err := os.Open(args[2])
 	if err != nil {
 		return fmt.Errorf("open input file: %w", err)
 	}
@@ -109,7 +113,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	var out bytes.Buffer
 
 	// append input to output
-	if err := append.Append(ctx, &out, all, one); err != nil {
+	if err := append.Append(ctx, hash, &out, all, one); err != nil {
 		return fmt.Errorf("append result: %w", err)
 	}
 

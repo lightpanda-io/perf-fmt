@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"github.com/browsercore/perf-fmt/git"
 )
 
 type InResult struct {
@@ -29,9 +31,9 @@ type OutItem struct {
 }
 
 type OutResult struct {
-	Commit string    `json:"commitHash"`
-	Time   time.Time `json:"dateTime"`
-	Data   struct {
+	Hash git.CommitHash `json:"commitHash"`
+	Time time.Time      `json:"dateTime"`
+	Data struct {
 		WithIsolate    OutItem `json:"withIsolate"`
 		WithoutIsolate OutItem `json:"withoutIsolate"`
 	} `json:"data"`
@@ -39,7 +41,7 @@ type OutResult struct {
 
 type Append struct{}
 
-func (a *Append) Append(ctx context.Context, out io.Writer, all io.Reader, one io.Reader) error {
+func (a *Append) Append(ctx context.Context, hash git.CommitHash, out io.Writer, all io.Reader, one io.Reader) error {
 	// decode one input
 	var inr []InResult
 	dec := json.NewDecoder(one)
@@ -56,9 +58,16 @@ func (a *Append) Append(ctx context.Context, out io.Writer, all io.Reader, one i
 		return fmt.Errorf("decode all: %w", err)
 	}
 
+	// search if the commit already exists in the all results to avoid duplication.
+	for _, v := range allres {
+		if hash == v.Hash {
+			return errors.New("hash exists")
+		}
+	}
+
 	outres := OutResult{
-		Commit: "TODO",
-		Time:   time.Now(),
+		Hash: hash,
+		Time: time.Now(),
 	}
 
 	for _, v := range inr {
