@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/browsercore/perf-fmt/bench"
-	"github.com/browsercore/perf-fmt/git"
-	"github.com/browsercore/perf-fmt/wpt"
+	"github.com/lightpanda-io/perf-fmt/bench"
+	"github.com/lightpanda-io/perf-fmt/git"
+	"github.com/lightpanda-io/perf-fmt/wpt"
 )
 
 const (
@@ -55,7 +55,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stderr, "\nRead, format and save performance results.\n")
 		fmt.Fprintf(stderr, "\nThe sources avalaible are:\n")
 		fmt.Fprintf(stderr, "\t%s\tjsruntime-lib benchmark json result.\n", SourceBench)
-		fmt.Fprintf(stderr, "\t%s\tbrowsercore WPT test result.\n", SourceWPT)
+		fmt.Fprintf(stderr, "\t%s\tlightpanda browser WPT test result.\n", SourceWPT)
 		fmt.Fprintf(stderr, "\nTo upload data in AWS S3, the program uses env var:\n")
 		fmt.Fprintf(stderr, "\tAWS_ACCESS_KEY_ID\t\trequired\n")
 		fmt.Fprintf(stderr, "\tAWS_SECRET_ACCESS_KEY\t\trequired\n")
