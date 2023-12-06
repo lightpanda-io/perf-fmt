@@ -15,7 +15,7 @@ jobs:
     steps:
       - run: |
           apk update
-          apk install curl
+          apk add curl
           curl -v https://www.amaozn.com
 
   ci-test:
