@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: browsercore/perf-fmt
+  IMAGE_NAME: lightpanda-io/perf-fmt
 
 jobs:
   # build-release compiles perf-fmt from source.
