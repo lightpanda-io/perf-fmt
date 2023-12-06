@@ -8,7 +8,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/browsercore/perf-fmt/git"
+	"github.com/lightpanda-io/perf-fmt/git"
 )
 
 type InResult struct {
