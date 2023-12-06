@@ -14,6 +14,7 @@ import (
 
 	"github.com/browsercore/perf-fmt/bench"
 	"github.com/browsercore/perf-fmt/git"
+	"github.com/browsercore/perf-fmt/wpt"
 )
 
 const (
@@ -79,9 +80,10 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	switch args[0] {
 	case SourceBench:
 		append = &bench.Append{}
-		path = "bench"
+		path = SourceBench
 	case SourceWPT:
-		return errors.New("not implemented source")
+		append = &wpt.Append{}
+		path = SourceWPT
 	default:
 		flags.Usage()
 		return errors.New("bad source")
@@ -90,7 +92,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	hash := git.CommitHash(args[1])
 	// TODO check commit format
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// open one
 	one, err := os.Open(args[2])
