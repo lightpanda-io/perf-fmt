@@ -1,0 +1,25 @@
+name: build-release
+
+on:
+  pull_request
+
+jobs:
+  ci-container-test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/lightpanda-io/perf-fmt:latest
+      credentials:
+       username: ${{ github.actor }}
+       password: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - run: |
+          apk update
+          apk install curl
+          curl -v https://www.amaozn.com
+
+  ci-test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -v https://www.amaozn.com
