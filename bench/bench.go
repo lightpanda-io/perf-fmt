@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"time"
 
 	"github.com/lightpanda-io/perf-fmt/git"
@@ -89,6 +90,11 @@ func (a *Append) Append(
 	}
 
 	allres = append(allres, outres)
+
+	// reorder slice
+	sort.Slice(allres, func(i, j int) bool {
+		return allres[i].Time.Before(allres[j].Time)
+	})
 
 	// encode output
 	enc := json.NewEncoder(out)
