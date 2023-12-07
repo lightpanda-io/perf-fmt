@@ -42,16 +42,16 @@ LOOP:
 		}
 
 		switch i {
-		case 7:
+		case 6:
 			item, err := parseLine(v)
 			if err != nil {
-				return OutResult{}, fmt.Errorf("bad data format: %w", err)
+				return OutResult{}, fmt.Errorf("parse line with isolate: %w", err)
 			}
 			res.Data.WithIsolate = item
-		case 9:
+		case 8:
 			item, err := parseLine(v)
 			if err != nil {
-				return OutResult{}, fmt.Errorf("bad data format: %w", err)
+				return OutResult{}, fmt.Errorf("parse line w/o isolate: %w", err)
 			}
 			res.Data.WithoutIsolate = item
 			break LOOP
