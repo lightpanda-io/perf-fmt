@@ -59,6 +59,7 @@ type S3IO struct {
 	uploader *s3manager.Uploader
 	bucket   string
 	item     string
+	acl      string
 }
 
 func NewS3IO(bucket, item string) (*S3IO, error) {
@@ -70,9 +71,14 @@ func NewS3IO(bucket, item string) (*S3IO, error) {
 	svc := s3.New(session)
 
 	return &S3IO{
-		bucket:   bucket,
-		item:     item,
-		svc:      svc,
+		bucket: bucket,
+		item:   item,
+		svc:    svc,
+
+		// set ACL to public-read.
+		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl
+		acl: "public-read",
+
 		uploader: s3manager.NewUploaderWithClient(svc),
 	}, nil
 }
@@ -100,6 +106,7 @@ func (s3io *S3IO) Pull(ctx context.Context) (io.ReadCloser, error) {
 
 func (s3io *S3IO) Push(ctx context.Context, r io.Reader) error {
 	_, err := s3io.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+		ACL:    aws.String(s3io.acl),
 		Body:   r,
 		Bucket: aws.String(s3io.bucket),
 		Key:    aws.String(s3io.item),
