@@ -74,6 +74,9 @@ func parseLine(data []byte) (OutItem, error) {
 	if err != nil {
 		return OutItem{}, fmt.Errorf("bad data format: %w", err)
 	}
+	// The text duration is in microseconds but we want to convert it in
+	// nanoseconds for JSON.
+	duration *= 1000
 
 	reallocnb := 0
 	if len(b[4]) > 0 {
@@ -92,6 +95,9 @@ func parseLine(data []byte) (OutItem, error) {
 	if err != nil {
 		return OutItem{}, fmt.Errorf("bad data format: %w", err)
 	}
+	// The text aloc size is in KBytes but we want to conver it in Bytes for
+	// JSON.
+	allocsize *= 1024
 
 	return OutItem{
 		Duration:  duration,
