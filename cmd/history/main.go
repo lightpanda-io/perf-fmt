@@ -97,7 +97,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		res = append(res, out)
 	}
 
-	// pull hitory.json file
+	// pull history.json file
 	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/history.json")
 	if err != nil {
 		return fmt.Errorf("news3io single result: %w", err)
@@ -120,9 +120,10 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// let merge all and res
 APPEND:
 	for _, in := range res {
-		for _, a := range all {
+		for i, a := range all {
 			if in.Hash == a.Hash {
-				// the commit already exists in all
+				// the commit already exists in all we replace the values.
+				all[i] = in
 				continue APPEND
 			}
 		}
