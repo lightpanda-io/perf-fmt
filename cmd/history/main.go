@@ -97,7 +97,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		res = append(res, out)
 	}
 
-	// pull hitory.json file
+	// pull history.json file
 	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/history.json")
 	if err != nil {
 		return fmt.Errorf("news3io single result: %w", err)
