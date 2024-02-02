@@ -24,8 +24,8 @@ type InResult struct {
 }
 
 type OutResult struct {
-	Hash git.CommitHash `json:"commitHash"`
-	Time time.Time      `json:"dateTime"`
+	Hash git.CommitHash `json:"commit"`
+	Time time.Time      `json:"datetime"`
 	Data struct {
 		Pass  int `json:"pass"`
 		Fail  int `json:"fail"`

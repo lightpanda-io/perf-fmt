@@ -27,18 +27,18 @@ type InResult struct {
 
 type OutItem struct {
 	Duration  int `json:"duration"`
-	AllocSize int `json:"allocationSize"`
-	AllocNb   int `json:"alloccation"`
-	ReallocNb int `json:"reallocation"`
+	AllocSize int `json:"alloc_size"`
+	AllocNb   int `json:"alloc_nb"`
+	ReallocNb int `json:"realloc_nb"`
 	FreeNb    int `json:"free"`
 }
 
 type OutResult struct {
-	Hash git.CommitHash `json:"commitHash"`
-	Time time.Time      `json:"dateTime"`
+	Hash git.CommitHash `json:"commit"`
+	Time time.Time      `json:"datetime"`
 	Data struct {
-		WithIsolate    OutItem `json:"withIsolate"`
-		WithoutIsolate OutItem `json:"withoutIsolate"`
+		WithIsolate    OutItem `json:"with_isolate"`
+		WithoutIsolate OutItem `json:"without_isolate"`
 	} `json:"data"`
 }
 
