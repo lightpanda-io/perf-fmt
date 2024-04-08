@@ -111,6 +111,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// If dev flag is active, use the `dev/` dir prefix.
 	if *dev {
 		path = "dev/" + path
+		fmt.Fprintf(os.Stderr, "⚠️  Dev mode enabled, result will be stored in %q\n", path)
 	}
 
 	hash := git.CommitHash(args[1])
