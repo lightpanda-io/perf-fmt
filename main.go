@@ -12,7 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/lightpanda-io/perf-fmt/bench"
+	browserbench "github.com/lightpanda-io/perf-fmt/bench/browser"
+	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
 	"github.com/lightpanda-io/perf-fmt/git"
 	"github.com/lightpanda-io/perf-fmt/s3"
 	"github.com/lightpanda-io/perf-fmt/wpt"
@@ -38,24 +39,38 @@ func main() {
 }
 
 const (
+	SourceBenchJSRuntime = "bench-jsruntime"
+	SourceBenchBrowser   = "bench-browser"
+	SourceWPT            = "wpt"
+
+	// deprecated source, alias to bench-jsruntime.
 	SourceBench = "bench"
-	SourceWPT   = "wpt"
 
 	AWSRegion = "eu-west-3"
 	AWSBucket = "lpd-perf"
+
+	PathBenchJSRuntime = "bench"
+	PathBenchBrowser   = "bench/browser"
+	PathWPT            = "wpt"
 )
 
 // run configures the flags and starts the HTTP API server.
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// declare runtime flag parameters.
 	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
+
+	var (
+		dev = flags.Bool("dev", false, "use dev/ dir storage prefix")
+	)
+
 	// usage func declaration.
 	exec := args[0]
 	flags.Usage = func() {
 		fmt.Fprintf(stderr, "usage: %s <source> <commit> <result.json>\n", exec)
 		fmt.Fprintf(stderr, "\nRead, format and save performance results.\n")
 		fmt.Fprintf(stderr, "\nThe sources avalaible are:\n")
-		fmt.Fprintf(stderr, "\t%s\tjsruntime-lib benchmark json result.\n", SourceBench)
+		fmt.Fprintf(stderr, "\t%s\tjsruntime-lib benchmark json result.\n", SourceBenchJSRuntime)
+		fmt.Fprintf(stderr, "\t%s\tlightpanda browser test benchmark json result.\n", SourceBenchBrowser)
 		fmt.Fprintf(stderr, "\t%s\tlightpanda browser WPT test result.\n", SourceWPT)
 		fmt.Fprintf(stderr, "\nTo upload data in AWS S3, the program uses env var:\n")
 		fmt.Fprintf(stderr, "\tAWS_ACCESS_KEY_ID\t\trequired\n")
@@ -79,15 +94,23 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	)
 
 	switch args[0] {
-	case SourceBench:
-		append = &bench.Append{}
-		path = SourceBench
+	case SourceBench, SourceBenchJSRuntime:
+		append = &jsrbench.Append{}
+		path = PathBenchJSRuntime
+	case SourceBenchBrowser:
+		append = &browserbench.Append{}
+		path = PathBenchBrowser
 	case SourceWPT:
 		append = &wpt.Append{}
-		path = SourceWPT
+		path = PathWPT
 	default:
 		flags.Usage()
 		return errors.New("bad source")
+	}
+
+	// If dev flag is active, use the `dev/` dir prefix.
+	if *dev {
+		path = "dev/" + path
 	}
 
 	hash := git.CommitHash(args[1])
