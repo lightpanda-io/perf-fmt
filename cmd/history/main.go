@@ -15,6 +15,7 @@ import (
 	"syscall"
 
 	"github.com/lightpanda-io/perf-fmt/bench"
+	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
 	"github.com/lightpanda-io/perf-fmt/s3"
 )
 
@@ -76,7 +77,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return fmt.Errorf("opendir: %w", err)
 	}
 
-	var res []bench.OutResult
+	var res []jsrbench.OutResult
 	for _, file := range files {
 		fmt.Fprintln(os.Stderr, file.Name())
 		// ignore subdirs
@@ -89,7 +90,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 			return fmt.Errorf("readfile: %w", err)
 		}
 
-		out, err := bench.ParseTxtData(file.Name(), b)
+		out, err := jsrbench.ParseTxtData(file.Name(), b)
 		if err != nil {
 			return fmt.Errorf("parse file: %w", err)
 		}
@@ -112,7 +113,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 
 	// decode the result
 	dec := json.NewDecoder(ball)
-	var all []bench.OutResult
+	var all []jsrbench.OutResult
 	if err := dec.Decode(&all); err != nil {
 		return fmt.Errorf("decode all history: %w", err)
 	}

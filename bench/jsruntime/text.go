@@ -1,4 +1,4 @@
-package bench
+package jsruntime
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lightpanda-io/perf-fmt/bench"
 	"github.com/lightpanda-io/perf-fmt/git"
 )
 
@@ -64,15 +65,15 @@ LOOP:
 
 var linerxp = regexp.MustCompile(`^ *\|[^|]+\| +(\d+)us[^|]+\| +(\d+)[^|]+\|(| +(\d+)[^|]+\|)? +(\d+)kb[^|]+\|$`)
 
-func parseLine(data []byte) (OutItem, error) {
+func parseLine(data []byte) (bench.OutItem, error) {
 	b := linerxp.FindSubmatch(data)
 	if len(b) != 6 {
-		return OutItem{}, ErrBadData
+		return bench.OutItem{}, ErrBadData
 	}
 
 	duration, err := strconv.Atoi(string(b[1]))
 	if err != nil {
-		return OutItem{}, fmt.Errorf("bad data format: %w", err)
+		return bench.OutItem{}, fmt.Errorf("bad data format: %w", err)
 	}
 	// The text duration is in microseconds but we want to convert it in
 	// nanoseconds for JSON.
@@ -82,24 +83,24 @@ func parseLine(data []byte) (OutItem, error) {
 	if len(b[4]) > 0 {
 		reallocnb, err = strconv.Atoi(string(b[4]))
 		if err != nil {
-			return OutItem{}, fmt.Errorf("bad data format: %w", err)
+			return bench.OutItem{}, fmt.Errorf("bad data format: %w", err)
 		}
 	}
 
 	allocnb, err := strconv.Atoi(string(b[2]))
 	if err != nil {
-		return OutItem{}, fmt.Errorf("bad data format: %w", err)
+		return bench.OutItem{}, fmt.Errorf("bad data format: %w", err)
 	}
 
 	allocsize, err := strconv.Atoi(string(b[5]))
 	if err != nil {
-		return OutItem{}, fmt.Errorf("bad data format: %w", err)
+		return bench.OutItem{}, fmt.Errorf("bad data format: %w", err)
 	}
 	// The text aloc size is in KBytes but we want to conver it in Bytes for
 	// JSON.
 	allocsize *= 1024
 
-	return OutItem{
+	return bench.OutItem{
 		Duration:  duration,
 		ReallocNb: reallocnb,
 		AllocNb:   allocnb,
