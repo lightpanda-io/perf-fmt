@@ -56,7 +56,7 @@ build:
 ## build and run program locally with env vars from 1password
 run: build check-op
 	@export $(aws_env) && \
-		./perf-fmt $(filter-out $@,$(MAKECMDGOALS))
+		./perf-fmt --dev $(filter-out $@,$(MAKECMDGOALS))
 
 ## echo env vars. usage: $ export $(env)
 env: check-op
