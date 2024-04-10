@@ -49,7 +49,7 @@ const (
 	AWSRegion = "eu-west-3"
 	AWSBucket = "lpd-perf"
 
-	PathBenchJSRuntime = "bench"
+	PathBenchJSRuntime = "bench/jsruntime"
 	PathBenchBrowser   = "bench/browser"
 	PathWPT            = "wpt"
 )
