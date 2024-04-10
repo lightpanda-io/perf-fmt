@@ -18,6 +18,9 @@ type OutResult struct {
 	Time time.Time      `json:"datetime"`
 	Data struct {
 		Browser bench.OutItem `json:"browser"`
+		Libdom  bench.OutItem `json:"libdom"`
+		V8      bench.OutItem `json:"v8"`
+		Main    bench.OutItem `json:"main"`
 	} `json:"data"`
 }
 
@@ -61,6 +64,12 @@ func (a *Append) Append(
 		switch v.Name {
 		case "browser":
 			outres.Data.Browser = bench.OutItem(v.Bench)
+		case "v8":
+			outres.Data.V8 = bench.OutItem(v.Bench)
+		case "libdom":
+			outres.Data.Libdom = bench.OutItem(v.Bench)
+		case "main":
+			outres.Data.Main = bench.OutItem(v.Bench)
 		default:
 			return fmt.Errorf("unhandled bench result: %s", v.Name)
 		}
