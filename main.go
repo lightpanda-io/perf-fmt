@@ -43,9 +43,6 @@ const (
 	SourceBenchBrowser   = "bench-browser"
 	SourceWPT            = "wpt"
 
-	// deprecated source, alias to bench-jsruntime.
-	SourceBench = "bench"
-
 	AWSRegion = "eu-west-3"
 	AWSBucket = "lpd-perf"
 
@@ -94,7 +91,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	)
 
 	switch args[0] {
-	case SourceBench, SourceBenchJSRuntime:
+	case SourceBenchJSRuntime:
 		append = &jsrbench.Append{}
 		path = PathBenchJSRuntime
 	case SourceBenchBrowser:
