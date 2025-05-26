@@ -28,6 +28,7 @@ import (
 
 	browserbench "github.com/lightpanda-io/perf-fmt/bench/browser"
 	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
+	"github.com/lightpanda-io/perf-fmt/cdp"
 	"github.com/lightpanda-io/perf-fmt/git"
 	"github.com/lightpanda-io/perf-fmt/s3"
 	"github.com/lightpanda-io/perf-fmt/wpt"
@@ -56,12 +57,14 @@ const (
 	SourceBenchJSRuntime = "bench-jsruntime"
 	SourceBenchBrowser   = "bench-browser"
 	SourceWPT            = "wpt"
+	SourceCDP            = "cdp"
 
 	AWSRegion = "eu-west-3"
 	AWSBucket = "lpd-perf"
 
 	PathBenchJSRuntime = "bench/jsruntime"
 	PathBenchBrowser   = "bench/browser"
+	PathCDP            = "cdp"
 	PathWPT            = "wpt"
 )
 
@@ -80,8 +83,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stderr, "usage: %s <source> <commit> <result.json>\n", exec)
 		fmt.Fprintf(stderr, "\nRead, format and save performance results.\n")
 		fmt.Fprintf(stderr, "\nThe sources avalaible are:\n")
-		fmt.Fprintf(stderr, "\t%s\tjsruntime-lib benchmark json result.\n", SourceBenchJSRuntime)
+		fmt.Fprintf(stderr, "\t%s\tDEPRECATED jsruntime-lib benchmark json result.\n", SourceBenchJSRuntime)
 		fmt.Fprintf(stderr, "\t%s\tlightpanda browser test benchmark json result.\n", SourceBenchBrowser)
+		fmt.Fprintf(stderr, "\t%s\tlightpanda browser CDP benchmark json result.\n", SourceCDP)
 		fmt.Fprintf(stderr, "\t%s\tlightpanda browser WPT test result.\n", SourceWPT)
 		fmt.Fprintf(stderr, "\nTo upload data in AWS S3, the program uses env var:\n")
 		fmt.Fprintf(stderr, "\tAWS_ACCESS_KEY_ID\t\trequired\n")
@@ -111,6 +115,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	case SourceBenchBrowser:
 		append = &browserbench.Append{}
 		path = PathBenchBrowser
+	case SourceCDP:
+		append = &cdp.Append{}
+		path = PathCDP
 	case SourceWPT:
 		append = &wpt.Append{}
 		path = PathWPT
