@@ -30,6 +30,7 @@ import (
 	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
 	"github.com/lightpanda-io/perf-fmt/cdp"
 	"github.com/lightpanda-io/perf-fmt/git"
+	"github.com/lightpanda-io/perf-fmt/hyperfine"
 	"github.com/lightpanda-io/perf-fmt/s3"
 	"github.com/lightpanda-io/perf-fmt/wpt"
 )
@@ -58,6 +59,7 @@ const (
 	SourceBenchBrowser   = "bench-browser"
 	SourceWPT            = "wpt"
 	SourceCDP            = "cdp"
+	SourceHyperfine      = "hyperfine"
 
 	AWSRegion = "eu-west-3"
 	AWSBucket = "lpd-perf"
@@ -66,6 +68,7 @@ const (
 	PathBenchBrowser   = "bench/browser"
 	PathCDP            = "cdp"
 	PathWPT            = "wpt"
+	PathHyperfine      = "hyperfine"
 )
 
 // run configures the flags and starts the HTTP API server.
@@ -87,6 +90,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stderr, "\t%s\tlightpanda browser test benchmark json result.\n", SourceBenchBrowser)
 		fmt.Fprintf(stderr, "\t%s\tlightpanda browser CDP benchmark json result.\n", SourceCDP)
 		fmt.Fprintf(stderr, "\t%s\tlightpanda browser WPT test result.\n", SourceWPT)
+		fmt.Fprintf(stderr, "\t%s\tlightpanda browser cold start.\n", SourceHyperfine)
 		fmt.Fprintf(stderr, "\nTo upload data in AWS S3, the program uses env var:\n")
 		fmt.Fprintf(stderr, "\tAWS_ACCESS_KEY_ID\t\trequired\n")
 		fmt.Fprintf(stderr, "\tAWS_SECRET_ACCESS_KEY\t\trequired\n")
@@ -121,6 +125,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	case SourceWPT:
 		append = &wpt.Append{}
 		path = PathWPT
+	case SourceHyperfine:
+		append = &hyperfine.Append{}
+		path = PathHyperfine
 	default:
 		flags.Usage()
 		return errors.New("bad source")
