@@ -133,7 +133,7 @@ func parseTxtName(filename string) (time.Time, git.CommitHash, error) {
 		return time.Time{}, "", ErrBadName
 	}
 
-	commit, rest, ok := strings.Cut(rest, "_")
+	commit, _, ok := strings.Cut(rest, "_")
 	if !ok {
 		return time.Time{}, "", ErrBadName
 	}
