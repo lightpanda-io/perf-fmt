@@ -58,7 +58,7 @@ func (a *Append) Append(
 		return fmt.Errorf("decode one: %w", err)
 	}
 
-	if len(inr.Results) != 0 {
+	if len(inr.Results) != 1 {
 		return errors.New("unexpected results size")
 	}
 
