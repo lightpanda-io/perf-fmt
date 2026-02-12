@@ -30,6 +30,7 @@ type InResult struct {
 	DurationTotal int `json:"duration_total"`
 	DurationAVG   int `json:"duration_avg"`
 	MemPeak       int `json:"mem_peak"`
+	CGMemPeak     int `json:"cg_mem_peak"`
 }
 
 type OutResult struct {
@@ -38,6 +39,7 @@ type OutResult struct {
 	DurationTotal int            `json:"duration_total"`
 	DurationAVG   int            `json:"duration_avg"`
 	MemPeak       int            `json:"mem_peak"`
+	CGMemPeak     int            `json:"cg_mem_peak"`
 }
 
 type Append struct{}
@@ -77,6 +79,7 @@ func (a *Append) Append(
 		DurationTotal: inr.DurationTotal,
 		DurationAVG:   inr.DurationAVG,
 		MemPeak:       inr.MemPeak,
+		CGMemPeak:     inr.CGMemPeak,
 	}
 
 	allres = append(allres, outres)
