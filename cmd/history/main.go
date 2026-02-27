@@ -110,7 +110,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 
 	// pull history.json file
-	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/jsruntime/history.json")
+	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/jsruntime/history.json", "application/json")
 	if err != nil {
 		return fmt.Errorf("news3io single result: %w", err)
 	}
@@ -173,7 +173,7 @@ APPEND:
 
 		// upload all individual file to s3
 		filename := fmt.Sprintf("%s_%v.json", v.Time.Format("2006-01-02_15-04"), v.Hash)
-		fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/jsruntime/"+filename)
+		fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/jsruntime/"+filename, "application/json")
 		if err != nil {
 			return fmt.Errorf("news3io single result: %w", err)
 		}

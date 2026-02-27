@@ -69,14 +69,15 @@ func (fio *FileIO) Push(ctx context.Context, r io.Reader) error {
 }
 
 type S3IO struct {
-	svc      *s3.S3
-	uploader *s3manager.Uploader
-	bucket   string
-	item     string
-	acl      string
+	svc         *s3.S3
+	uploader    *s3manager.Uploader
+	bucket      string
+	item        string
+	acl         string
+	contentType string
 }
 
-func NewS3IO(bucket, item string) (*S3IO, error) {
+func NewS3IO(bucket, item, contentType string) (*S3IO, error) {
 	session, err := session.NewSession()
 	if err != nil {
 		return nil, fmt.Errorf("aws session: %w", err)
@@ -85,9 +86,10 @@ func NewS3IO(bucket, item string) (*S3IO, error) {
 	svc := s3.New(session)
 
 	return &S3IO{
-		bucket: bucket,
-		item:   item,
-		svc:    svc,
+		bucket:      bucket,
+		item:        item,
+		contentType: contentType,
+		svc:         svc,
 
 		// set ACL to public-read.
 		// https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl
@@ -119,12 +121,16 @@ func (s3io *S3IO) Pull(ctx context.Context) (io.ReadCloser, error) {
 }
 
 func (s3io *S3IO) Push(ctx context.Context, r io.Reader) error {
-	_, err := s3io.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+	input := &s3manager.UploadInput{
 		ACL:    aws.String(s3io.acl),
 		Body:   r,
 		Bucket: aws.String(s3io.bucket),
 		Key:    aws.String(s3io.item),
-	})
+	}
+	if s3io.contentType != "" {
+		input.ContentType = aws.String(s3io.contentType)
+	}
+	_, err := s3io.uploader.UploadWithContext(ctx, input)
 	if err != nil {
 		return fmt.Errorf("put object: %w", err)
 	}

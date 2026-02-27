@@ -156,7 +156,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	if _, ok := os.LookupEnv("AWS_REGION"); !ok {
 		os.Setenv("AWS_REGION", AWSRegion)
 	}
-	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/history.json")
+	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/history.json", "application/json")
 	if err != nil {
 		return fmt.Errorf("new s3 io: %w", err)
 	}
@@ -187,7 +187,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 
 	filename := fmt.Sprintf("%s_%v.json", now.Format("2006-01-02_15-04"), hash)
-	fio, err = s3.NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/"+filename)
+	fio, err = s3.NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/"+filename, "application/json")
 	if err != nil {
 		return fmt.Errorf("news3io single result: %w", err)
 	}
