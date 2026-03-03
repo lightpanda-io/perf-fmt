@@ -16,6 +16,7 @@ package s3
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -117,15 +118,45 @@ func (s3io *S3IO) Pull(ctx context.Context) (io.ReadCloser, error) {
 		return nil, fmt.Errorf("get object: %w", err)
 	}
 
+	if aws.StringValue(obj.ContentEncoding) == "gzip" {
+		gr, err := gzip.NewReader(obj.Body)
+		if err != nil {
+			obj.Body.Close()
+			return nil, fmt.Errorf("gzip reader: %w", err)
+		}
+		return &gzipReadCloser{gr: gr, body: obj.Body}, nil
+	}
+
 	return obj.Body, nil
 }
 
+type gzipReadCloser struct {
+	gr   *gzip.Reader
+	body io.ReadCloser
+}
+
+func (g *gzipReadCloser) Read(p []byte) (int, error) { return g.gr.Read(p) }
+func (g *gzipReadCloser) Close() error {
+	g.gr.Close()
+	return g.body.Close()
+}
+
 func (s3io *S3IO) Push(ctx context.Context, r io.Reader) error {
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := io.Copy(gz, r); err != nil {
+		return fmt.Errorf("gzip compress: %w", err)
+	}
+	if err := gz.Close(); err != nil {
+		return fmt.Errorf("gzip close: %w", err)
+	}
+
 	input := &s3manager.UploadInput{
-		ACL:    aws.String(s3io.acl),
-		Body:   r,
-		Bucket: aws.String(s3io.bucket),
-		Key:    aws.String(s3io.item),
+		ACL:             aws.String(s3io.acl),
+		Body:            &buf,
+		Bucket:          aws.String(s3io.bucket),
+		Key:             aws.String(s3io.item),
+		ContentEncoding: aws.String("gzip"),
 	}
 	if s3io.contentType != "" {
 		input.ContentType = aws.String(s3io.contentType)
