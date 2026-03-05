@@ -78,13 +78,8 @@ type S3IO struct {
 	contentType string
 }
 
-func NewS3IO(bucket, item, contentType string) (*S3IO, error) {
-	session, err := session.NewSession()
-	if err != nil {
-		return nil, fmt.Errorf("aws session: %w", err)
-	}
-
-	svc := s3.New(session)
+func NewS3IO(sess *session.Session, bucket, item, contentType string) *S3IO {
+	svc := s3.New(sess)
 
 	return &S3IO{
 		bucket:      bucket,
@@ -97,7 +92,7 @@ func NewS3IO(bucket, item, contentType string) (*S3IO, error) {
 		acl: "public-read",
 
 		uploader: s3manager.NewUploaderWithClient(svc),
-	}, nil
+	}
 }
 
 func (s3io *S3IO) Pull(ctx context.Context) (io.ReadCloser, error) {

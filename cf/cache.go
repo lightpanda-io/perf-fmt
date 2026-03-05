@@ -25,16 +25,11 @@ type CloudFrontCache struct {
 	distributionID string
 }
 
-func NewCloudFrontCache(distributionID string) (*CloudFrontCache, error) {
-	sess, err := session.NewSession()
-	if err != nil {
-		return nil, fmt.Errorf("aws session: %w", err)
-	}
-
+func NewCloudFrontCache(sess *session.Session, distributionID string) *CloudFrontCache {
 	return &CloudFrontCache{
 		cf:             cloudfront.New(sess),
 		distributionID: distributionID,
-	}, nil
+	}
 }
 
 func (c *CloudFrontCache) Invalidate(ctx context.Context, path string) error {

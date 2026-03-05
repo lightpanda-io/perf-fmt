@@ -28,6 +28,7 @@ import (
 	"sort"
 	"syscall"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/lightpanda-io/perf-fmt/bench"
 	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
 	"github.com/lightpanda-io/perf-fmt/s3"
@@ -109,11 +110,13 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		res = append(res, out)
 	}
 
-	// pull history.json file
-	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/jsruntime/history.json", "application/json")
+	session, err := session.NewSession()
 	if err != nil {
-		return fmt.Errorf("news3io single result: %w", err)
+		return fmt.Errorf("new aws session: %w", err)
 	}
+
+	// pull history.json file
+	fio := s3.NewS3IO(session, env("AWS_BUCKET", AWSBucket), "bench/jsruntime/history.json", "application/json")
 
 	// pull the whole data
 	ball, err := fio.Pull(ctx)
@@ -173,10 +176,7 @@ APPEND:
 
 		// upload all individual file to s3
 		filename := fmt.Sprintf("%s_%v.json", v.Time.Format("2006-01-02_15-04"), v.Hash)
-		fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), "bench/jsruntime/"+filename, "application/json")
-		if err != nil {
-			return fmt.Errorf("news3io single result: %w", err)
-		}
+		fio := s3.NewS3IO(session, env("AWS_BUCKET", AWSBucket), "bench/jsruntime/"+filename, "application/json")
 
 		// push output
 		if err := fio.Push(ctx, bytes.NewReader(bin)); err != nil {
