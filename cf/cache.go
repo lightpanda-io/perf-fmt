@@ -16,7 +16,7 @@ type Cache interface {
 
 type CacheNoop struct{}
 
-func (_ CacheNoop) Invalidate(_ context.Context, _ string) error {
+func (CacheNoop) Invalidate(context.Context, string) error {
 	return nil
 }
 
