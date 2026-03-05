@@ -29,6 +29,7 @@ import (
 	browserbench "github.com/lightpanda-io/perf-fmt/bench/browser"
 	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
 	"github.com/lightpanda-io/perf-fmt/cdp"
+	"github.com/lightpanda-io/perf-fmt/cf"
 	"github.com/lightpanda-io/perf-fmt/git"
 	"github.com/lightpanda-io/perf-fmt/hyperfine"
 	"github.com/lightpanda-io/perf-fmt/s3"
@@ -96,6 +97,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		fmt.Fprintf(stderr, "\tAWS_SECRET_ACCESS_KEY\t\trequired\n")
 		fmt.Fprintf(stderr, "\tAWS_REGION\t\t\tdefault value: %s\n", AWSRegion)
 		fmt.Fprintf(stderr, "\tAWS_BUCKET\t\t\tdefault value: %s\n", AWSBucket)
+		fmt.Fprintf(stderr, "\tAWS_CF_DISTRIBUTION\n")
 	}
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
@@ -164,7 +166,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// pull the all
 	all, err := fio.Pull(ctx)
 	if err != nil {
-		return fmt.Errorf("pull all file: %w", err)
+		return fmt.Errorf("pull all files: %w", err)
 	}
 	defer all.Close()
 
@@ -195,6 +197,18 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// push output
 	if err := fio.Push(ctx, one); err != nil {
 		return fmt.Errorf("push single result : %w", err)
+	}
+
+	// optionally invalide the cache for history
+	if did := os.Getenv("AWS_CF_DISTRIBUTION"); did != "" {
+		cf, err := cf.NewCloudFrontCache(did)
+		if err != nil {
+			return fmt.Errorf("newscfcache: %w", err)
+		}
+
+		if err := cf.Invalidate(ctx, path+"/history.json"); err != nil {
+			return fmt.Errorf("invalidate cache: %w", err)
+		}
 	}
 
 	return nil
