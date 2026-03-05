@@ -26,6 +26,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	browserbench "github.com/lightpanda-io/perf-fmt/bench/browser"
 	jsrbench "github.com/lightpanda-io/perf-fmt/bench/jsruntime"
 	"github.com/lightpanda-io/perf-fmt/cdp"
@@ -153,15 +154,17 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 	defer one.Close()
 
+	session, err := session.NewSession()
+	if err != nil {
+		return fmt.Errorf("new aws session: %w", err)
+	}
+
 	// prepare S3 connection
 	// set default env region if not already set.
 	if _, ok := os.LookupEnv("AWS_REGION"); !ok {
 		os.Setenv("AWS_REGION", AWSRegion)
 	}
-	fio, err := s3.NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/history.json", "application/json")
-	if err != nil {
-		return fmt.Errorf("new s3 io: %w", err)
-	}
+	fio := s3.NewS3IO(session, env("AWS_BUCKET", AWSBucket), path+"/history.json", "application/json")
 
 	// pull the all
 	all, err := fio.Pull(ctx)
@@ -189,10 +192,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	}
 
 	filename := fmt.Sprintf("%s_%v.json", now.Format("2006-01-02_15-04"), hash)
-	fio, err = s3.NewS3IO(env("AWS_BUCKET", AWSBucket), path+"/"+filename, "application/json")
-	if err != nil {
-		return fmt.Errorf("news3io single result: %w", err)
-	}
+	fio = s3.NewS3IO(session, env("AWS_BUCKET", AWSBucket), path+"/"+filename, "application/json")
 
 	// push output
 	if err := fio.Push(ctx, one); err != nil {
@@ -201,11 +201,7 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 
 	// optionally invalide the cache for history
 	if did := os.Getenv("AWS_CF_DISTRIBUTION"); did != "" {
-		cf, err := cf.NewCloudFrontCache(did)
-		if err != nil {
-			return fmt.Errorf("newscfcache: %w", err)
-		}
-
+		cf := cf.NewCloudFrontCache(session, did)
 		if err := cf.Invalidate(ctx, path+"/history.json"); err != nil {
 			return fmt.Errorf("invalidate cache: %w", err)
 		}
