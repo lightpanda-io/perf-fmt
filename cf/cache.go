@@ -33,7 +33,7 @@ func NewCloudFrontCache(sess *session.Session, distributionID string) *CloudFron
 }
 
 func (c *CloudFrontCache) Invalidate(ctx context.Context, path string) error {
-	paths := []*string{&path}
+	paths := []string{path}
 
 	_, err := c.cf.CreateInvalidationWithContext(ctx, &cloudfront.CreateInvalidationInput{
 		DistributionId: aws.String(c.distributionID),
@@ -41,7 +41,7 @@ func (c *CloudFrontCache) Invalidate(ctx context.Context, path string) error {
 			CallerReference: aws.String(fmt.Sprintf("%d", time.Now().UnixNano())),
 			Paths: &cloudfront.Paths{
 				Quantity: aws.Int64(int64(len(paths))),
-				Items:    paths,
+				Items:    aws.StringSlice(paths),
 			},
 		},
 	})
