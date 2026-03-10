@@ -202,7 +202,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	// optionally invalide the cache for history
 	if did := os.Getenv("AWS_CF_DISTRIBUTION"); did != "" {
 		cf := cf.NewCloudFrontCache(session, did)
-		if err := cf.Invalidate(ctx, path+"/history.json"); err != nil {
+		// Cloudfront requires an absolute path.
+		if err := cf.Invalidate(ctx, "/"+path+"/history.json"); err != nil {
 			return fmt.Errorf("invalidate cache: %w", err)
 		}
 	}
